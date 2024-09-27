@@ -22,7 +22,10 @@ end_date <- as.Date("2024-08-31")
 ###number of dates that TTC delaied###
 number_of_dates <- 100
 
-###simulated data
+###simulated data###
+#simulated a tibble with column date,incident, days of the week and number of delay:
+days_of_week <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+
 simulated_data <- tibble(
   dates = as.Date(
     runif(
@@ -32,9 +35,11 @@ simulated_data <- tibble(
     ),
     origin = "1970-01-01"
   ),
+  incident = c(rep("Collision - TTC", 50), 
+               rep("Diversion", 50)),
+  day = sample(days_of_week, size = 100, replace = TRUE),
   number_of_delay = rpois(n = number_of_dates, lambda = 15)
   )
-
 
 
 #### Write_csv

@@ -11,12 +11,19 @@
 #### Workspace setup ####
 library(tidyverse)
 
+#### Test simulated data and analysis data ####
+simulated_test_data <- read.csv("data/raw_data/simulated_data.csv")
+analysis_test_data <- read.csv("data/analysis_data/analysis_data.csv")
 
-#### Test data ####
-data <- read.csv("data/raw_data/simulated_data.csv")
+# Test for incident to be either "Collision - TTC" or "Diversion" in simulated data
+simulated_test_data$incident |>
+  unique() == c("Collision - TTC" , "Diversion")
 
-# Test for negative numbers
-data$number_of_marriage |> min() <= 0
+
+# Test for incident in simulated data
+analysis_test_data$incident |>
+  unique() |>
+  length() == 12
 
 # Test for NAs
-all(is.na(data$number_of_marriage))
+all(is.na(simulated_data$number_of_delay))

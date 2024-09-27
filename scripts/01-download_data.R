@@ -11,7 +11,7 @@
 #### Workspace setup ####
 library(opendatatoronto)
 library(tidyverse)
-library(dplyr)
+#library(dplyr)
 
 #### Download data ####
 
@@ -35,5 +35,6 @@ warnings()
 
 #### Save data ####
 # change the_raw_data to whatever name you assigned when you downloaded it.
-write_csv(data, "data/raw_data/TTCdaley_raw_data.csv") 
+write_csv(data, "data/raw_data/TTC_bus_delay.csv") 
+
          
