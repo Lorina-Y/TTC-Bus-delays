@@ -15,15 +15,15 @@ library(tidyverse)
 #### Simulate data ####
 set.seed(304)
 
-###Start and end date###
+### Start and end date ###
 start_date <- as.Date("2024-01-01")
 end_date <- as.Date("2024-08-31")
 
-###number of dates that TTC delaied###
+### number of dates of TTC delay ###
 number_of_dates <- 100
 
-###simulated data###
-#simulated a tibble with column date,incident, days of the week and number of delay:
+### simulated data ###
+# simulated a tibble with column date,incident, days of the week and number of delay:
 days_of_week <- c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
 
 simulated_data <- tibble(
