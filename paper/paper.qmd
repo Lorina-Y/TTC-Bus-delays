@@ -1,13 +1,12 @@
 ---
-title: "My title"
-subtitle: "My subtitle if needed"
+title: "Analyzing TTC Bus Delay Times and Incident Causes"
+subtitle: "Exploring Delay Trends, Daily Patterns, and Potential Improvements in Toronto's Public Transit System"
 author: 
-  - First author
-  - Another author
-thanks: "Code and data are available at: LINK."
+  - Hanqing Yang
+thanks: "Code and data are available at: https://github.com/Lorina-Y/TTC-Bus-delays.git."
 date: today
 date-format: long
-abstract: "First sentence. Second sentence. Third sentence. Fourth sentence."
+abstract: "This paper analyzes TTC delay patterns throughout the year and week, incident occurrences, and the relationship between delay time and incident type. We found that the first quarter experiences the most delays, with minimal variation across days, mechanical incidents are frequent, but diversions contribute to the longest delays. Our findings emphasize the need for the TTC to focus on mechanical issues and diversions to improve bus delays. The paper is structured into Introduction, Data, Visualization, Results and Discussion sections."
 format: pdf
 number-sections: true
 bibliography: references.bib
@@ -19,203 +18,185 @@ bibliography: references.bib
 #| message: false
 
 library(tidyverse)
-library(palmerpenguins)
+library(tibble)
+library(knitr)
+
+#load data from analysis data file
+ttc_data <- read_csv("../data/analysis_data/analysis_data.csv")
 ```
 
-
 # Introduction
+Mobility affects the daily lives of millions of citizens and the economic productivity and social development of a city. Since it heavily relies on public transportation, increasing the efficiency of transportation is crucial. The Toronto Transit Commission (TTC) serves some 5.5 million people in Toronto, the delay will cause a negative impact for commuters, thus, it is important to study and identify the leading factors of delay. 
 
-You can and should cross-reference sections and sub-sections. We use @citeR and @rohan.
+This paper examines the delay time patterns of the TTC throughout the year and across different days of the week, while also analyzing the frequency of various incidents that lead to delays. Specifically, we explore the relationship between delay times and the types of incidents that occur, aiming to uncover trends that can inform future transit management strategies. Our findings indicate that delays are more frequent in the first quarter of the year, with little variation across the days of the week. While mechanical incidents occur frequently, it is the diversions that cause the most significant delays, underscoring a critical area for improvement in transit operations
 
-The remainder of this paper is structured as follows. @sec-data....
+This research is important as it highlights the need for the TTC to prioritize addressing mechanical issues and managing diversions more effectively. By focusing on these areas, the TTC can enhance its service reliability, improve commuter satisfaction, and ultimately foster greater public trust in public transportation.
 
+The paper is organized into four sections: the Introduction provides the background and motivation; the Data section outlines the data sources and methodology; The Visualization section plot the data and relationship between variables; The Results section presents the key findings; and the Discussion interprets the implications of these findings and limitations in analysis
 
 
 # Data {#sec-data}
 
-Some of our data is of penguins (@fig-bills), from @palmerpenguins.
+## Data Source
+Our data of TTC bus delay time in 2024 come from @opendatatoronto, and reference from @citeR and @rohan also be used.
+The paper study the trend of number of TTC bus daley in 2024, with incident causes, delay duration, direction and location. While similar datasets on TTC bus delay times from previous years exist, I chose to focus on the delays in 2024 because the frequency of incidents can change over time. Analyzing updated data will provide more relevant insights that can better inform future improvements to the transit system.
 
+## Measurement of data
+The dataset collects information about each TTC bus delay, including the date, day of the week, incident type, and delay duration in minutes. The date and day are recorded automatically when a delay occurs. The delay duration is measured by clock on each bus. Incidents causing delays are categorized into 12 predefined types and recorded for each delay occurred. These measurement methods ensure the data is accurate and reliable.
+
+## Data variables
+The cleaned TTC dataset contains four variables:
+"Date" which represents the occurrence of each TTC delay, formatted as year-month-day.
+"Day" which Indicates the day of the week, categorized with six possible values from Monday to Sunday.
+"Incident" which Identifies the specific incident causing each bus delay, comprising 12 categorical values, including "Vision," "General Delay," "Security," "Operations - Operator," "Emergency Services," "Utilized Off Route," "Cleaning - Unsanitary," "Diversion," "Mechanical," "Collision - TTC," "Investigation," and "Road Blocked - NON-TTC Collision."
+and variable "Min_Delay" which Provides the duration of each TTC bus delay in minutes.
+
+## Data table
+Below table show a part of the "ttc_data" dataset been used in this paper. The function @kable in package @knitr was used for display table.
 ```{r}
-#| label: fig-bills
-#| fig-cap: Bills of penguins
+#| label: fig-ttc_data
+#| fig-cap: TTC bus delay dataset
 #| echo: false
-
-ggplot(penguins, aes(x = island, fill = species)) +
-  geom_bar(alpha = 0.8) +
-  scale_fill_manual(values = c("darkorange","purple","cyan4"),
-                    guide = "none") +
-  theme_minimal() +
-  facet_wrap(~species, ncol = 1) +
-  coord_flip()
+ttc_data |>
+  slice(1:10) |>
+  kable()
 ```
 
-Talk more about it.
 
-And also planes (@fig-planes). (You can change the height and width, but don't worry about doing that until you have finished every other aspect of the paper - Quarto will try to make it look nice and the defaults usually work well once you have enough text.)
+# Visualizations
 
+## Trend of daily TTC Bus delays time
+This line graph plot the trend of daily TTC bus delay time in minutes over 2024(@fig-min_delay), from@opendatatoronto.
 ```{r}
-#| label: fig-planes
-#| fig-cap: Relationship between wing length and width
+#| label: fig-min_delay
+#| fig-cap: Trend of daily TTC Bus delays time in minutes over 2024
+#| echo: false
+
+#Group data by date and create new variable of total time of delay
+daily_delay <- ttc_data %>%
+  group_by(date) %>%
+  summarize(total_delay = sum(min_delay))
+
+#plot line graph to show the trend of daily total delay time over 2024
+ggplot(daily_delay, aes(x = date, y = total_delay)) +
+  geom_line(color = "purple") +
+  labs(title = "TTC Bus Delay Time Trend in 2024",
+       x = "Date",
+       y = "Total Delay (Minutes)") +
+  theme_minimal()
+```
+The x-axis represents the date variable, covering the period from January 1 to August 31, 2024, while the y-axis shows the total duration of bus delays in minutes for each day. The line graph clearly illustrates the trend in delay times over this period, indicating that delays are more pronounced in the first quarter of the year compared to the subsequent months; however, the difference is not substantial. Consequently, we can conclude that there is not much variation in bus delay times over the three-quarters of 2024 analyzed.
+
+## Pattern of TTC bus delay time across day of the week
+This bar chart show the average TTC bus delay time by days of the week over the three-quarters of 2024(@fig-days_of_the_week), data from@opendatatoronto.
+```{r}
+#| label: fig-days_of_the_week
+#| fig-cap: pattern of TTC bus delay time across day of the week.
 #| echo: false
 #| warning: false
 #| message: false
 
-analysis_data <- read_csv(here::here("data/analysis_data/analysis_data.csv"))
+# create new dataset with average delay time for each day in a week.
+avg_delay <- ttc_data %>%
+  group_by(day) %>%
+  summarise(avg_delay = mean(min_delay, na.rm = TRUE))
 
-analysis_data |> 
-  ggplot(aes(x = width, y = length)) +
-  geom_point(alpha = 0.8) +
+# create barchart to show the average of TTC delay time for each day in a week
+ggplot(avg_delay, aes(x = day, y = avg_delay, fill = day)) +
+  geom_bar(stat = "identity", color = "darkblue") +
+  labs(
+    title = "Average Delay Times by Day of the Week",
+    x = "Day of the Week",
+    y = "Average Delay Time (minutes)",
+    fill = "day"
+  ) +
   theme_minimal() +
-  labs(x = "Wing width (mm)",
-       y = "Wing length (mm)")
+  theme(
+    plot.title = element_text(hjust = 0.6, size = 16, face = "bold"),
+    axis.title = element_text(size = 8),
+    axis.text = element_text(size = 8)
+  )
+
+
 ```
+In this bar chart(@fig-days_of_the_week), the x-axis represents the days of the week, with each rectangular bar corresponding to a specific day. The y-axis indicates the average delay time for each day of the week throughout 2024. Different colors are used to fill each rectangular bar, clearly illustrating the variations in delay times for each day. However, the average delay times show minimal differences across the days, indicating that TTC delays are not significantly related to the day of the week.
 
-Talk way more about it. 
+From the two visualization above, We can conclude that the TTC bus delay time not significantly related to time over the year nor days of weeks.
 
-
-
-# Model
-
-The goal of our modelling strategy is twofold. Firstly,...
-
-Here we briefly describe the Bayesian analysis model used to investigate... Background details and diagnostics are included in [Appendix -@sec-model-details].
-
-## Model set-up
-
-Define $y_i$ as the number of seconds that the plane remained aloft. Then $\beta_i$ is the wing width and $\gamma_i$ is the wing length, both measured in millimeters.  
-
-\begin{align} 
-y_i|\mu_i, \sigma &\sim \mbox{Normal}(\mu_i, \sigma) \\
-\mu_i &= \alpha + \beta_i + \gamma_i\\
-\alpha &\sim \mbox{Normal}(0, 2.5) \\
-\beta &\sim \mbox{Normal}(0, 2.5) \\
-\gamma &\sim \mbox{Normal}(0, 2.5) \\
-\sigma &\sim \mbox{Exponential}(1)
-\end{align}
-
-We run the model in R [@citeR] using the `rstanarm` package of @rstanarm. We use the default priors from `rstanarm`.
-
-
-### Model justification
-
-We expect a positive relationship between the size of the wings and time spent aloft. In particular...
-
-We can use maths by including latex between dollar signs, for instance $\theta$.
-
-
-# Results
-
-Our results are summarized in @tbl-modelresults.
-
+## Occurance of different type of incidents over 2024
+Also, to understand the potential causation of bus delay, we need to study the incidents lead to each delay. The bar chart(@fig-incident) illustrate the number of occurence of different kind of incidents over 2024, data from@opendatatoronto.
 ```{r}
+#| label: fig-incident
+#| fig-cap: Occurance of different type of incidents over 2024
 #| echo: false
-#| eval: true
 #| warning: false
 #| message: false
 
-library(rstanarm)
+#Group data by incident, store it into incident_counts dataset
+incident_counts <- ttc_data %>%
+  group_by(incident) %>%
+  summarize(count = n()) %>%
+  ungroup()
 
-first_model <-
-  readRDS(file = here::here("models/first_model.rds"))
+# Plotting the total occurrences of different types of incidents over 2024 using a bar chart
+ggplot(incident_counts, aes(x = incident, y = count, fill = incident)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Total Occurrences of Different Types of Incidents in 2024",
+       x = "Type of Incident",
+       y = "Count of Incidents",
+       fill = "Type of Incidents")+
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1),
+        plot.title = element_text(size = 11))
 ```
+In (@fig-incident), We present all 12 types of incidents that contribute to TTC bus delays throughout the year. The x-axis represents the types of incidents, while the y-axis shows the total count of occurrences for each incident from January 1 to August 31, 2024. The graph illustrates that mechanical incidents occur most frequently, with around 13,000 occurrences during this period, followed by operational issues. In contrast, road blockage incidents are the least likely to occur.
 
+
+## Relationship between incident and TTC bus delay time
+Then, the (@fig-incident_delay) illustrate the relationship between incidents and TTC delay time.
 ```{r}
+#| label: fig-incident_delay
+#| fig-cap: Relationship between incident and minutes of TTC bus delay
 #| echo: false
-#| eval: true
-#| label: tbl-modelresults
-#| tbl-cap: "Explanatory models of flight time based on wing width and wing length"
 #| warning: false
+#| message: false
 
-modelsummary::modelsummary(
-  list(
-    "First model" = first_model
-  ),
-  statistic = "mad",
-  fmt = 2
-)
+#plot boxplot to illustrate the delay time for each incident types
+ggplot(ttc_data, aes(x = incident, y = min_delay, fill = incident)) +
+  geom_boxplot() +
+  labs(title = "Relationship Between Incident Types and Delay Times",
+       x = "Type of Incident",
+       y = "Delay (Minutes)",
+       fill = "Type of Incident") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+The box plot(@fig-incident_delay) is utilized to examine which types of incidents are most likely to cause TTC bus delays or lead to longer delay times. A box plot was chosen because it effectively displays the distribution of the dataset, including potential outliers. The x-axis represents the types of incidents, while the y-axis indicates the delay times. From the plot, we observe that diversions exhibit a greater spread and variance in delay times, suggesting that they are more likely to cause bus delays compared to other incidents.
 
-
+\newpage
+# Results:
+The analysis of TTC bus delays throughout 2024 reveals 4 key findings. First, there is little variation in bus delay times across the three-quarters analyzed, indicating a relatively consistent delay pattern. Second, the delays do not appear to be significantly influenced by the day of the week, suggesting that other factors are more critical in determining service reliability. Third, mechanical incidents are the most common cause of delays, followed by operational issues, while road blockage incidents are the least frequent. Lastly, diversions are associated with longer delays, highlighting their impact on overall service efficiency.
 
 
 # Discussion
+## Suggested Improvement can be made for reduce bus delay:
+Based on the result, the following strategies are recommended for enhance TTC bus service and reduce delays:
 
-## First discussion point {#sec-first-point}
+1.Focus on Mechanical Maintenance: Since mechanical incidents are the most frequent cause of delays, the TTC should prioritize routine maintenance and implement a proactive maintenance schedule, which could help to identify and address potential issues before they lead to delays.
 
-If my paper were 10 pages, then should be be at least 2.5 pages. The discussion is a chance to show off what you know and what you learnt from all this. 
+2.Optimize Operational Procedures: Since operational issues are a significant contributor to delays, the TTC should review and refine its operational guideline. Training programs for staff and clear communication can help to reduce these incidents.
 
-## Second discussion point
+3.Enhance Diversion Management: Since diversions are linked to longer delays, the TTC could develop better diversion management strategies. This includes timely communication with passengers about expected delays and alternative routes, as well as collaborating with local authorities to minimize the need for diversions whenever possible.
 
-## Third discussion point
+4.Keep trace the data and continue evaluate delay pattern regularly and adjust operations accordingly.
 
 ## Weaknesses and next steps
-
-Weaknesses and next steps should also be included.
-
-\newpage
-
-\appendix
-
-# Appendix {-}
-
-
-# Additional data details
-
-# Model details {#sec-model-details}
-
-## Posterior predictive check
-
-In @fig-ppcheckandposteriorvsprior-1 we implement a posterior predictive check. This shows...
-
-In @fig-ppcheckandposteriorvsprior-2 we compare the posterior with the prior. This shows... 
-
-```{r}
-#| eval: true
-#| echo: false
-#| message: false
-#| warning: false
-#| label: fig-ppcheckandposteriorvsprior
-#| layout-ncol: 2
-#| fig-cap: "Examining how the model fits, and is affected by, the data"
-#| fig-subcap: ["Posterior prediction check", "Comparing the posterior with the prior"]
-
-pp_check(first_model) +
-  theme_classic() +
-  theme(legend.position = "bottom")
-
-posterior_vs_prior(first_model) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +
-  theme(legend.position = "bottom") +
-  coord_flip()
-```
-
-## Diagnostics
-
-@fig-stanareyouokay-1 is a trace plot. It shows... This suggests...
-
-@fig-stanareyouokay-2 is a Rhat plot. It shows... This suggests...
-
-```{r}
-#| echo: false
-#| eval: true
-#| message: false
-#| warning: false
-#| label: fig-stanareyouokay
-#| fig-cap: "Checking the convergence of the MCMC algorithm"
-#| fig-subcap: ["Trace plot", "Rhat plot"]
-#| layout-ncol: 2
-
-plot(first_model, "trace")
-
-plot(first_model, "rhat")
-```
-
-
-
-\newpage
+One limitation of this paper is that in the analysis for incidents type of time delay(@fig-incident_delay) does not demonstrate a causal relationship between incident type and delay time. While the data indicates a correlation suggesting that diversions are linked to longer delays, we cannot definitively conclude that diversions are the cause of bus delays. Further analysis is necessary to validate this point and provide a clearer understanding of the nature of these relationships.
 
 
 # References
+@opendatatoronto,
+@tibble, @knitr, @gg2, @kable, @janitor
+@citeR, @rohan
 
 
